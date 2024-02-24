@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eth-proxy-deployment
+  labels:
+    app: eth-proxy
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: eth-proxy
+  template:
+    metadata:
+      labels:
+        app: eth-proxy
+
+    spec:
+      containers:
+        - name: eth-proxy-container
+          image: luishsoares/eth-proxy:latest
+          ports:
+            - containerPort: 8088
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8088
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8088
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name

@@ -1,0 +1,40 @@
+version: '3.7'
+
+services:
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"  # Expose Prometheus on localhost:9090
+    networks:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana-enterprise:10.3.3-ubuntu
+    ports:
+      - "3000:3000"  # Expose Grafana on localhost:3000
+    networks:
+      - monitoring
+    depends_on:
+      - prometheus
+
+  eth-proxy:
+    build: .
+    ports:
+      - "8088:8088"
+    environment:
+      - GIN_MODE=release
+    volumes:
+      - ./:/app
+      - go-build:/go/pkg/mod/cache
+    command: ./eth-proxy
+    restart: unless-stopped
+    networks:
+      - monitoring
+
+networks:
+  monitoring:
+
+volumes:
+  go-build:
