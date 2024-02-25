@@ -6,7 +6,6 @@ import (
 	"github.com/luishsr/eth-proxy/internal/nodemanager"
 	"github.com/luishsr/eth-proxy/utils"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/sirupsen/logrus"
 	"net/http"
 	"os"
 	"strings"
@@ -25,7 +24,7 @@ var (
 )
 
 type Server struct {
-	manager nodemanager.ClientManagerInterface // Interface abstraction for Ethereum node management.
+	manager nodemanager.ClientManagerInterface // Interface abstraction for Ethereum node.
 }
 
 // NewServer constructs a new Server instance with a given Ethereum node manager.
@@ -44,19 +43,6 @@ func (s *Server) handleEthBalance(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Increment the API call counter for the node handling the request.
-	nodeName := s.manager.GetNodeName()
-	apiCallsPerNode.WithLabelValues(nodeName).Inc()
-
-	// Retrieve the pod name from environment variables, typically set by Kubernetes.
-	podName := os.Getenv("POD_NAME")
-
-	// Log the request details using structured logging.
-	utils.Logger.WithFields(logrus.Fields{
-		"pod":  podName,
-		"node": nodeName,
-	}).Info("Request received")
-
 	// Delegate the request to the handler's ProxyHandler function.
 	handlerFunc := handler.NewAPIHandler(s.manager).ProxyHandler()
 	handlerFunc.ServeHTTP(w, r)
@@ -72,7 +58,8 @@ func (s *Server) handleReady(w http.ResponseWriter, _ *http.Request) {
 	if s.manager.IsReady() {
 		w.WriteHeader(http.StatusOK)
 	} else {
-		http.Error(w, "not ready", http.StatusServiceUnavailable)
+		utils.Logger.Println("Service Not ready")
+		http.Error(w, "Service Not ready", http.StatusServiceUnavailable)
 	}
 }
 
@@ -93,11 +80,11 @@ func main() {
 	manager := nodemanager.NewClientManager(nil, httpClient) // Update to pass actual node configurations.
 
 	// Start periodic health checks for Ethereum nodes.
-	manager.StartHealthChecks(30 * time.Second)
+	//manager.StartHealthChecks(30 * time.Second)
 
-	// Set up HTTP handlers for the server.
+	// Start the HTTP server with JWT Middleware
 	server := NewServer(manager)
-	http.HandleFunc("/eth/balance/", server.handleEthBalance)
+	http.Handle("/eth/balance/", http.HandlerFunc(server.handleEthBalance))
 	http.HandleFunc("/healthz", server.handleHealthz)
 	http.HandleFunc("/ready", server.handleReady)
 

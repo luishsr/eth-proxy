@@ -61,11 +61,14 @@ func unsetEnv(t *testing.T, key string) {
 func mockEthereumNode(response string, statusCode int) *httptest.Server {
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(statusCode)
-		w.Write([]byte(response))
+		_, err := w.Write([]byte(response))
+		if err != nil {
+			return
+		}
 	}))
 }
 
-func NewClientManager(nodes []nodemanager.NodeConfig, httpClient *http.Client) *MockClientManager {
+func NewClientManager(nodes []nodemanager.NodeConfig, _ *http.Client) *MockClientManager {
 	// Initialize a new ClientManager instance with an empty cache and the provided HTTP client.
 	manager := &MockClientManager{
 		Balance: "16",
@@ -95,7 +98,10 @@ func TestGetBalanceRetry(t *testing.T) {
 	// Mock server that simulates a successful response
 	successServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"jsonrpc":"2.0","id":1,"result":"0x10"}`)) // Sample response
+		_, err := w.Write([]byte(`{"jsonrpc":"2.0","id":1,"result":"0x10"}`))
+		if err != nil {
+			return
+		} // Sample response
 	}))
 	defer successServer.Close()
 

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/sirupsen/logrus"
 	"net/http"
+	"os"
 	"strings"
 )
 
@@ -16,6 +17,7 @@ var (
 func init() {
 	// Initialize log configuration
 	Logger.SetFormatter(&logrus.JSONFormatter{})
+	logrus.SetOutput(os.Stdout)
 }
 
 // RespondJSON sends a JSON response with the given status code and payload

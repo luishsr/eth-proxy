@@ -39,8 +39,8 @@ func (api *APIHandler) ProxyHandler() http.HandlerFunc {
 				utils.RespondError(w, http.StatusBadRequest, err.Error())
 			} else {
 				// Log the error and respond with a generic internal server error message for any other errors.
-				utils.Logger.Errorf("Error fetching balance: %v", err)
-				utils.RespondError(w, http.StatusInternalServerError, "Internal server error")
+				utils.Logger.Println("Error fetching balance:", err)
+				utils.RespondError(w, http.StatusInternalServerError, err.Error())
 			}
 			return
 		}
