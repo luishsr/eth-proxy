@@ -88,7 +88,7 @@ func (m *ClientManager) NextNode() *EthereumNode {
 		}
 
 		if m.index == startIdx {
-			utils.Logger.Warn("All nodes have been checked and none are healthy")
+			utils.Logger.Warn("All Ethereum nodes have been checked and none are healthy")
 			break
 		}
 
@@ -132,7 +132,7 @@ func (m *ClientManager) CheckNodeHealth(node *EthereumNode) {
 			"node":        node.Name,
 			"status_code": resp.StatusCode,
 			"error":       err,
-		}).Warn("Node health check failed")
+		}).Println("Ethereum Node health check failed")
 	} else {
 		node.Healthy = true
 		node.ErrorCount = 0
@@ -149,7 +149,7 @@ func (m *ClientManager) cooldownNode(node *EthereumNode, duration time.Duration)
 	time.Sleep(duration) // Wait for the cooldown period
 	node.Healthy = true  // Assume the node might be healthy now
 	node.ErrorCount = 0  // Reset error count
-	utils.Logger.WithField("node", node.Name).Info("Node cooldown period ended, marking as healthy")
+	utils.Logger.WithField("node", node.Name).Warn("Ethereum Node cooldown period ended, marking as healthy")
 }
 
 // GetNodeName returns the name of the last used node.
@@ -161,6 +161,7 @@ func (m *ClientManager) GetNodeName() string {
 
 // StartHealthChecks begins periodic health checks for each node.
 func (m *ClientManager) StartHealthChecks(interval time.Duration) {
+	utils.Logger.Info("Ethereum Nodes periodic health check started")
 	for _, node := range m.Nodes {
 		go func(n *EthereumNode) {
 			ticker := time.NewTicker(interval)
@@ -180,9 +181,11 @@ func (m *ClientManager) IsReady() bool {
 
 	for _, node := range m.Nodes {
 		if node.Healthy {
-			return true // At least one node is healthy
+			return true
+			// At least one node is healthy
 		}
 	}
+	utils.Logger.Println("No Ethereum Nodes Ready!")
 	return false // No healthy nodes
 }
 
@@ -200,11 +203,34 @@ func (m *ClientManager) GetBalance(address string) (string, error) {
 		maxRetries = 3 // Default to 3 retries if not specified or invalid.
 	}
 
+	m.mu.Lock()
+	cachedItem, found := m.Cache[address]
+	m.mu.Unlock()
+
+	cacheExpirationSecs, err := strconv.Atoi(os.Getenv("CACHE_EXPIRATION_SECONDS"))
+	if err != nil || cacheExpirationSecs <= 0 {
+		cacheExpirationSecs = 60 // Default to 60 seconds if not specified or invalid
+	}
+
+	// Check if the address is in the cache and if the cache item is still valid
+	if found {
+		// Calculate the age of the cache item
+		cacheAge := time.Since(cachedItem.Timestamp)
+
+		if cacheAge.Seconds() <= float64(cacheExpirationSecs) {
+			// Cache item is still valid, return the cached balance
+			return cachedItem.Balance, nil
+		}
+	}
+
 	var lastErr error
 	for i := 0; i <= maxRetries; i++ {
 		node := m.NextNode()
+
+		// No Ethereum nodes available
 		if node == nil {
-			return "", fmt.Errorf("no healthy nodes available to fetch the balance")
+			return "",
+				fmt.Errorf("no healthy Ethereum Nodes available to fetch the balance")
 		}
 
 		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeoutSecs)*time.Second)
@@ -213,6 +239,13 @@ func (m *ClientManager) GetBalance(address string) (string, error) {
 		if err == nil {
 			cancel()
 			return balance, nil
+		} else {
+			m.mu.Lock()
+			m.Cache[address] = CacheItem{
+				Balance:   balance,
+				Timestamp: time.Now(),
+			}
+			m.mu.Unlock()
 		}
 
 		lastErr = err

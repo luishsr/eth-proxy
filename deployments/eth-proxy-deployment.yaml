@@ -22,18 +22,13 @@ spec:
             - containerPort: 8088
           livenessProbe:
             httpGet:
-              path: /healthz
-              port: 8088
-            initialDelaySeconds: 10
+              path: healthz
+              port: 8080
+            initialDelaySeconds: 15
             periodSeconds: 5
           readinessProbe:
             httpGet:
-              path: /ready
-              port: 8088
+              path: ready
+              port: 8080
             initialDelaySeconds: 5
             periodSeconds: 5
-          env:
-            - name: POD_NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.name
