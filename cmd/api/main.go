@@ -77,12 +77,12 @@ func main() {
 
 	// Initialize the ClientManager with appropriate configuration.
 	httpClient := &http.Client{Timeout: 10 * time.Second}
-	manager := nodemanager.NewClientManager(nil, httpClient) // Update to pass actual node configurations.
+	manager := nodemanager.NewClientManager(nil, httpClient)
 
 	// Start periodic health checks for Ethereum nodes.
-	//manager.StartHealthChecks(30 * time.Second)
+	manager.StartHealthChecks(30 * time.Second)
 
-	// Start the HTTP server with JWT Middleware
+	// Map routes
 	server := NewServer(manager)
 	http.Handle("/eth/balance/", http.HandlerFunc(server.handleEthBalance))
 	http.HandleFunc("/healthz", server.handleHealthz)

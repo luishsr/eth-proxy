@@ -13,22 +13,9 @@ spec:
     metadata:
       labels:
         app: eth-proxy
-
     spec:
       containers:
         - name: eth-proxy-container
           image: luishsoares/eth-proxy:latest
           ports:
             - containerPort: 8088
-          livenessProbe:
-            httpGet:
-              path: healthz
-              port: 8080
-            initialDelaySeconds: 15
-            periodSeconds: 5
-          readinessProbe:
-            httpGet:
-              path: ready
-              port: 8080
-            initialDelaySeconds: 5
-            periodSeconds: 5

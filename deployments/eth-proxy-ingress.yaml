@@ -1,19 +1,53 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
+  name: eth-proxy-open-ingress
   annotations:
     konghq.com/strip-path: "true"
-    konghq.com/plugins: key-auth-plugin
-  name: eth-proxy-ingress
 spec:
   ingressClassName: kong
   rules:
     - http:
         paths:
-          - path: /eth-proxy
+          - path: /healthz
             pathType: Prefix
             backend:
               service:
                 name: eth-proxy-service
                 port:
-                  number: 8088
+                  number: 80
+          - path: /ready
+            pathType: Prefix
+            backend:
+              service:
+                name: eth-proxy-service
+                port:
+                  number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: eth-proxy-auth-ingress
+  annotations:
+    konghq.com/plugins: key-auth-plugin
+    konghq.com/override: custom-routing-behavior
+    konghq.com/strip-path: "true"
+spec:
+  ingressClassName: kong
+  rules:
+    - http:
+        paths:
+          - path: /metrics
+            pathType: Prefix
+            backend:
+              service:
+                name: eth-proxy-service
+                port:
+                  number: 80
+          - path: /eth/balance
+            pathType: Prefix
+            backend:
+              service:
+                name: eth-proxy-service
+                port:
+                  number: 80

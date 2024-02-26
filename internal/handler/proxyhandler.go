@@ -38,7 +38,6 @@ func (api *APIHandler) ProxyHandler() http.HandlerFunc {
 			if errors.Is(err, utils.ErrInvalidAddress) {
 				utils.RespondError(w, http.StatusBadRequest, err.Error())
 			} else {
-				// Log the error and respond with a generic internal server error message for any other errors.
 				utils.Logger.Println("Error fetching balance:", err)
 				utils.RespondError(w, http.StatusInternalServerError, err.Error())
 			}

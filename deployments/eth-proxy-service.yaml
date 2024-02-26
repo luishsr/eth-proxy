@@ -3,9 +3,8 @@ kind: Service
 metadata:
   name: eth-proxy-service
 spec:
-  type: ClusterIP
   selector:
     app: eth-proxy
   ports:
-    - port: 8088
+    - port: 80
       targetPort: 8088

@@ -33,10 +33,10 @@ sleep 10
 kubectl apply -f ../deployments/eth-proxy-deployment.yaml
 kubectl apply -f ../deployments/eth-proxy-service.yaml
 kubectl apply -f ../deployments/eth-proxy-ingress.yaml
-kubectl apply -f ../deployments/eth-proxy-probes.yaml
+kubectl apply -f ../deployments/api-key-secret.yaml
+#kubectl apply -f ../deployments/kong-consumer-and-credential.yaml
 
 # API Keys
-kubectl apply -f ../utils/api-secret.yaml
 kubectl apply -f ../utils/key-auth-plugin.yaml
 
 # Update the eth-proxy deployment to use the latest image

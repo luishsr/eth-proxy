@@ -99,7 +99,6 @@ func (m *ClientManager) NextNode() *EthereumNode {
 
 // CheckNodeHealth performs a health check on the specified node.
 func (m *ClientManager) CheckNodeHealth(node *EthereumNode) {
-	// Simplified JSON-RPC payload for health checking
 	payload := jsonRPCPayload{
 		JSONRPC: "2.0",
 		Method:  "web3_clientVersion",
@@ -122,18 +121,25 @@ func (m *ClientManager) CheckNodeHealth(node *EthereumNode) {
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := m.httpClient.Do(req)
+
+	utils.Logger.Info("Health-checking Node: " + node.Name)
+
 	if err != nil || resp.StatusCode != http.StatusOK {
 		node.Healthy = false
 		node.ErrorCount++
 		if node.ErrorCount >= 3 {
 			go m.cooldownNode(node, 1*time.Minute)
 		}
+
+		utils.Logger.Info("*** Node " + node.Name + " is not running!")
+
 		utils.Logger.WithFields(logrus.Fields{
 			"node":        node.Name,
 			"status_code": resp.StatusCode,
 			"error":       err,
 		}).Println("Ethereum Node health check failed")
 	} else {
+		utils.Logger.Info("Node " + node.Name + " is up and running!")
 		node.Healthy = true
 		node.ErrorCount = 0
 	}
