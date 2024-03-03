@@ -2,7 +2,7 @@
 
 The Ethereum Proxy Service is designed to provide a highly available and scalable solution for interacting with Ethereum nodes in a NON-PRODUCTION environment. It handles inconsistent data returned by a set of clients and distributes load across multiple Ethereum nodes.
 
-![AWS Deployment](https://github.com/luishsr/eth-proxy/assets/80909424/2a8abce7-7456-4857-acd3-a50ed91a31fe)
+![AWS Deployment](https://github.com/luishsr/eth-proxy/assets/80909424/33c9af93-3d38-42f5-98c1-93935a83f759)
 
 ## Features
 
