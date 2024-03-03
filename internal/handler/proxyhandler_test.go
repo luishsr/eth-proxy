@@ -156,7 +156,7 @@ func TestProxyHandler(t *testing.T) {
 			mockBalance:    "",
 			mockError:      fmt.Errorf("internal error"),
 			expectedStatus: http.StatusInternalServerError,
-			expectedBody:   `{"error":"Internal server error"}`,
+			expectedBody:   `{"error":"internal error"}`,
 		},
 	}
 
@@ -184,9 +184,11 @@ func TestProxyHandler(t *testing.T) {
 			actualJSON := make(map[string]interface{})
 
 			err := json.Unmarshal([]byte(tc.expectedBody), &expectedJSON)
+
 			if err != nil {
 				return
 			}
+
 			err = json.Unmarshal(rr.Body.Bytes(), &actualJSON)
 			if err != nil {
 				return

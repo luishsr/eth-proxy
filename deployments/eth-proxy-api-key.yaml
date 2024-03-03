@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: eth-proxy-apikey
+  namespace: default
+  annotations:
+    konghq.com/consumer: eth-proxy-consumer
+type: Opaque
+data:
+  key: TnpZNFpESmtNbVV0WXpOaVpTMDBZemxsTFdFNVpEQXRNakZtWmpJNE5HSmhNbU5r

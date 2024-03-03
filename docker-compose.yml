@@ -10,15 +10,6 @@ services:
     networks:
       - monitoring
 
-  grafana:
-    image: grafana/grafana-enterprise:10.3.3-ubuntu
-    ports:
-      - "3000:3000"  # Expose Grafana on localhost:3000
-    networks:
-      - monitoring
-    depends_on:
-      - prometheus
-
   eth-proxy:
     build: .
     ports:

@@ -2,8 +2,6 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: eth-proxy-open-ingress
-  annotations:
-    konghq.com/strip-path: "true"
 spec:
   ingressClassName: kong
   rules:
@@ -29,9 +27,7 @@ kind: Ingress
 metadata:
   name: eth-proxy-auth-ingress
   annotations:
-    konghq.com/plugins: key-auth-plugin
-    konghq.com/override: custom-routing-behavior
-    konghq.com/strip-path: "true"
+    konghq.com/plugins: key-auth
 spec:
   ingressClassName: kong
   rules:

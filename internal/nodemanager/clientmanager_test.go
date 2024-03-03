@@ -21,7 +21,7 @@ func TestGetBalance(t *testing.T) {
 	httpClient := &http.Client{}
 	manager := NewClientManager([]NodeConfig{{Name: "MockNode", URL: os.Getenv("ETH_NODE_URL")}}, httpClient)
 
-	balance, err := manager.GetBalance("0xSomeEthereumAddress")
+	balance, err := manager.GetBalance("0x0x00a3Ac5E156B4B291ceB59D019121beB6508d93D")
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}

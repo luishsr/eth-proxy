@@ -6,6 +6,7 @@ import (
 	"github.com/luishsr/eth-proxy/internal/nodemanager"
 	"github.com/luishsr/eth-proxy/utils"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"net/http"
 	"os"
 	"strings"
@@ -37,6 +38,9 @@ func (s *Server) handleEthBalance(w http.ResponseWriter, r *http.Request) {
 	// Extract Ethereum address from the request path.
 	address := strings.TrimPrefix(r.URL.Path, "/eth/balance/")
 
+	// Increment the counter for API calls
+	apiCallsPerNode.WithLabelValues("/eth/balance/").Inc()
+
 	// Validate Ethereum address format.
 	if !utils.IsValidEthereumAddress(address) {
 		utils.RespondError(w, http.StatusBadRequest, "Invalid Ethereum address")
@@ -63,6 +67,31 @@ func (s *Server) handleReady(w http.ResponseWriter, _ *http.Request) {
 	}
 }
 
+// LoadNodeConfigs loads node configuration from environment variables.
+func LoadNodeConfigs() []nodemanager.NodeConfig {
+	// Define a list of known node keys from the .env file.
+	nodeKeys := []string{
+		"ALCHEMY_ENDPOINT",
+		"QUICKNODE_ENDPOINT",
+		"CHAINSTACK_ENDPOINT",
+		"TENDERLY_ENDPOINT",
+		"INFURA_ENDPOINT",
+	}
+
+	var nodeConfigs []nodemanager.NodeConfig
+	for _, key := range nodeKeys {
+		if url := os.Getenv(key); url != "" {
+			// Use the key as the node's name and the environment variable's value as the URL.
+			nodeConfigs = append(nodeConfigs, nodemanager.NodeConfig{
+				Name: key,
+				URL:  url,
+			})
+		}
+	}
+
+	return nodeConfigs
+}
+
 func main() {
 	// Register the API calls counter with Prometheus.
 	customRegistry := prometheus.NewRegistry()
@@ -77,7 +106,7 @@ func main() {
 
 	// Initialize the ClientManager with appropriate configuration.
 	httpClient := &http.Client{Timeout: 10 * time.Second}
-	manager := nodemanager.NewClientManager(nil, httpClient)
+	manager := nodemanager.NewClientManager(LoadNodeConfigs(), httpClient)
 
 	// Start periodic health checks for Ethereum nodes.
 	manager.StartHealthChecks(30 * time.Second)
@@ -87,6 +116,7 @@ func main() {
 	http.Handle("/eth/balance/", http.HandlerFunc(server.handleEthBalance))
 	http.HandleFunc("/healthz", server.handleHealthz)
 	http.HandleFunc("/ready", server.handleReady)
+	http.Handle("/metrics", promhttp.Handler())
 
 	// Start the HTTP server.
 	utils.Logger.Println("Starting Ethereum proxy server on :8088...")
